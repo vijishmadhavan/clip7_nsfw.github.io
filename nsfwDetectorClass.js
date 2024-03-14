@@ -16,6 +16,7 @@ class NsfwDetector {
             const output = await classifier(blobUrl, this._nsfwLabels);
             const nsfwDetected = output.some(result => result.score > this._threshold);
             console.log(`Classification for ${imageUrl}:`, nsfwDetected ? 'NSFW' : 'Safe');
+            console.log('Detailed classification results:', output); // Log detailed results
             return nsfwDetected;
         } catch (error) {
             console.error('Error during NSFW classification: ', error);
