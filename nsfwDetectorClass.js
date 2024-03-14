@@ -3,7 +3,8 @@ class NsfwDetector {
         this._threshold = 0.30;
         this._nsfwLabels = [
             'FEMALE_BREAST_EXPOSED', 'FEMALE_GENITALIA_EXPOSED', 'BUTTOCKS_EXPOSED', 'ANUS_EXPOSED',
-            'MALE_GENITALIA_EXPOSED', 'BLOOD_SHED', 'VIOLENCE', 'GORE', 'PORNOGRAPHY', 'DRUGS', 'ALCOHOL',
+        'MALE_GENITALIA_EXPOSED', 'BLOOD_SHED', 'VIOLENCE', 'GORE', 'PORNOGRAPHY', 'DRUGS', 'ALCOHOL','CHILD_PORN',
+        'CHILD_KISS','CHILD_VULGARITY','INAPROPRIATE_CLOTHING','SENSUAL_KISS',
         ];
         this._classifierPromise = window.tensorflowPipeline('zero-shot-image-classification', 'Xenova/clip-vit-base-patch32');
     }
