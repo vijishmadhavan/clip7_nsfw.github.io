@@ -32,8 +32,8 @@ class NsfwDetector {
         const img = await this._loadImage(imageUrl);
         const offScreenCanvas = document.createElement('canvas');
         const ctx = offScreenCanvas.getContext('2d');
-        offScreenCanvas.width = 64;
-        offScreenCanvas.height = 64;
+        offScreenCanvas.width = 124;
+        offScreenCanvas.height = 124;
         ctx.drawImage(img, 0, 0, offScreenCanvas.width, offScreenCanvas.height);
         return new Promise((resolve, reject) => {
             offScreenCanvas.toBlob(blob => {
