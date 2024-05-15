@@ -20,19 +20,19 @@ class NsfwDetector {
             const classifier = await this._classifierPromise;
             const output = await classifier(blobUrl, this._nsfwLabels);
             
-            // Check if any of the top classes contain 'child' or related terms
-            const nsfwDetected = output.some(result => 
-                result.label.toLowerCase().includes('child') ||
-                result.label.toLowerCase().includes('kid') ||
-                result.label.toLowerCase().includes('baby') ||
-                result.label.toLowerCase().includes('toddler') ||
-                result.label.toLowerCase().includes('preschooler') ||
-                result.label.toLowerCase().includes('school_age_child') ||
-                result.label.toLowerCase().includes('preteen') ||
-                result.label.toLowerCase().includes('adolescent') ||
-                result.label.toLowerCase().includes('boy') ||
-                result.label.toLowerCase().includes('girl')
-            );
+            // Check if the top-ranked class contains 'child' or related terms
+            const topClass = output[0];
+            const nsfwDetected = 
+                topClass.label.toLowerCase().includes('child') ||
+                topClass.label.toLowerCase().includes('kid') ||
+                topClass.label.toLowerCase().includes('baby') ||
+                topClass.label.toLowerCase().includes('toddler') ||
+                topClass.label.toLowerCase().includes('preschooler') ||
+                topClass.label.toLowerCase().includes('school_age_child') ||
+                topClass.label.toLowerCase().includes('preteen') ||
+                topClass.label.toLowerCase().includes('adolescent') ||
+                topClass.label.toLowerCase().includes('boy') ||
+                topClass.label.toLowerCase().includes('girl');
     
             console.log(`Classification for ${imageUrl}:`, nsfwDetected ? 'NSFW' : 'Safe');
             console.log('Detailed classification results:', output); // Log detailed results
