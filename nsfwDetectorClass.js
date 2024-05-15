@@ -10,10 +10,6 @@ class NsfwDetector {
         'GARTER_BELT','FETISH_CLOTHING','LATEX_CLOTHING','FISHNET','MINI_SKIRT','BACKLESS_DRESS','TRANSPARENT_CLOTHING','BODYCON_DRESS', 'LEOTARD', 'STOCKINGS','REVEALING_GYM_WEAR',
         'REAR_CUTOUT_DRESS','BOOTY_DRESS','HIGH_CUT_REAR_DRESS','EXPOSED_BUTTOCKS_DRESS','WET_REVEALING_CLOTHING', 'WET_SHEER_DRESS', 'CLINGY_WET_DRESS', 'SOAKED_TRANSPARENT_CLOTHING',
         ];
-        this._childRelatedLabels = [
-            'KIDS', 'CHILD_FACE', 'CHILDREN', 'TEENAGER', 'CHILD_PORN', 'CHILD_KISS', 'CHILD_VULGARITY', 'CHILD_PLAYING', 'BABY',
-            'TODDLER', 'PRESCHOOLER', 'SCHOOL_AGE_CHILD', 'PRETEEN', 'ADOLESCENT', 'MALE_CHILD', 'FEMALE_CHILD', 'BOY', 'GIRL'
-        ];
         this._classifierPromise = window.tensorflowPipeline('zero-shot-image-classification', 'Xenova/clip-vit-base-patch32');
     }
 
@@ -24,10 +20,19 @@ class NsfwDetector {
             const classifier = await this._classifierPromise;
             const output = await classifier(blobUrl, this._nsfwLabels);
             
-            // Check if any of the top 3 classes are child-related
+            // Check if any of the top 3 classes contain 'child' or related terms
             const top3Classes = output.slice(0, 3);
-            const nsfwDetected = top3Classes.some(result =>
-                this._childRelatedLabels.includes(result.label)
+            const nsfwDetected = top3Classes.some(result => 
+                result.label.toLowerCase().includes('child') ||
+                result.label.toLowerCase().includes('kid') ||
+                result.label.toLowerCase().includes('baby') ||
+                result.label.toLowerCase().includes('toddler') ||
+                result.label.toLowerCase().includes('preschooler') ||
+                result.label.toLowerCase().includes('school_age_child') ||
+                result.label.toLowerCase().includes('preteen') ||
+                result.label.toLowerCase().includes('adolescent') ||
+                result.label.toLowerCase().includes('boy') ||
+                result.label.toLowerCase().includes('girl')
             );
 
             console.log(`Classification for ${imageUrl}:`, nsfwDetected ? 'NSFW' : 'Safe');
@@ -41,7 +46,6 @@ class NsfwDetector {
                 URL.revokeObjectURL(blobUrl);
             }
         }
-    }
     }
 
     async _loadAndResizeImage(imageUrl) {
@@ -97,6 +101,11 @@ class NsfwDetector {
         await Promise.all(semaphore); // Wait for all ongoing processes to finish
         return results;
     }
+
+}
+
+window.NsfwDetector = NsfwDetector;
+
 
 }
 
