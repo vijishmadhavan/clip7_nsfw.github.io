@@ -22,7 +22,7 @@ class NsfwDetector {
             
             // Check if the top-ranked class contains 'child' or related terms
             const topClass = output[0];
-            const nsfwDetected = 
+            const isChildRelated = 
                 topClass.label.toLowerCase().includes('child') ||
                 topClass.label.toLowerCase().includes('kid') ||
                 topClass.label.toLowerCase().includes('baby') ||
@@ -34,8 +34,17 @@ class NsfwDetector {
                 topClass.label.toLowerCase().includes('boy') ||
                 topClass.label.toLowerCase().includes('girl');
     
+            // If the top-ranked class is child-related, mark the image as NSFW
+            if (isChildRelated) {
+                console.log(`Classification for ${imageUrl}:`, 'NSFW (Child-related)');
+                console.log('Detailed classification results:', output);
+                return true;
+            }
+    
+            // For other cases, check if any class score is above the threshold
+            const nsfwDetected = output.some(result => result.score > this._threshold);
             console.log(`Classification for ${imageUrl}:`, nsfwDetected ? 'NSFW' : 'Safe');
-            console.log('Detailed classification results:', output); // Log detailed results
+            console.log('Detailed classification results:', output);
             return nsfwDetected;
         } catch (error) {
             console.error('Error during NSFW classification: ', error);
