@@ -1,92 +1,93 @@
 class NsfwDetector {
-    constructor() {
-        this._threshold = 0.25;
-        this._nsfwLabels = [
-          'HUG','KISS','NAKED', 'FEMALE_BREAST_EXPOSED', 'FEMALE_GENITALIA_EXPOSED', 'BUTTOCKS_EXPOSED', 'ANUS_EXPOSED',
-          'MALE_GENITALIA_EXPOSED', 'BLOOD_SHED', 'VIOLENCE', 'GORE', 'PORNOGRAPHY', 'DRUGS', 'ALCOHOL',
-          'CHILD_EXPLOITATION', 'CHILD_NUDITY', 'CHILD_ABUSE', 'CHILD_PORNOGRAPHY',
-          'SEXUALLY_SUGGESTIVE_CHILD', 'CHILD_IN_REVEALING_CLOTHING','LYING ON BED',
-          'NUDITY', 'PARTIAL_NUDITY', 'SEXUALLY_SUGGESTIVE', 'SEXUAL_ACTIVITY',
-          'REVEALING_CLOTHING', 'LINGERIE', 'SWIMWEAR', 'SHEER_CLOTHING',
-          'GRAPHIC_VIOLENCE', 'WEAPON_VIOLENCE', 'SELF_HARM', 'DISTURBING_IMAGERY','KIDS','CHILD','TEENAGER','KIDS PLAYING',
-        ];
-        this._classifierPromise = window.tensorflowPipeline('zero-shot-image-classification', 'Xenova/clip-vit-base-patch32');
-    }
+  constructor() {
+    this._threshold = 0.25; // Lowered threshold for stricter detection
 
-    async isNsfw(imageUrl) {
-        let blobUrl = '';
-        try {
-            blobUrl = await this._loadAndResizeImage(imageUrl);
-            const classifier = await this._classifierPromise;
-            const output = await classifier(blobUrl, this._nsfwLabels);
-            const nsfwDetected = output.some(result => result.score > this._threshold);
-            console.log(`Classification for ${imageUrl}:`, nsfwDetected ? 'NSFW' : 'Safe');
-            console.log('Detailed classification results:', output); // Log detailed results
-            return nsfwDetected;
-        } catch (error) {
-            console.error('Error during NSFW classification: ', error);
-            throw error;
-        } finally {
-            if (blobUrl) {
-                URL.revokeObjectURL(blobUrl);
-            }
+    this._nsfwLabels = [
+      'NAKED', 'FEMALE_BREAST_EXPOSED', 'FEMALE_GENITALIA_EXPOSED', 'BUTTOCKS_EXPOSED', 'ANUS_EXPOSED',
+      'MALE_GENITALIA_EXPOSED', 'BLOOD_SHED', 'VIOLENCE', 'GORE', 'PORNOGRAPHY', 'DRUGS', 'ALCOHOL',
+      'CHILD_EXPLOITATION', 'CHILD_NUDITY', 'CHILD_ABUSE', 'CHILD_PORNOGRAPHY',
+      'SEXUALLY_SUGGESTIVE_CHILD', 'CHILD_IN_REVEALING_CLOTHING',
+      'NUDITY', 'PARTIAL_NUDITY', 'SEXUALLY_SUGGESTIVE', 'SEXUAL_ACTIVITY',
+      'REVEALING_CLOTHING', 'LINGERIE', 'SWIMWEAR', 'SHEER_CLOTHING',
+      'GRAPHIC_VIOLENCE', 'WEAPON_VIOLENCE', 'SELF_HARM', 'DISTURBING_IMAGERY'
+    ];
+
+    this._classifierPromise = window.tensorflowPipeline('zero-shot-image-classification', 'Xenova/clip-vit-base-patch32');
+  }
+
+  async isNsfw(imageUrl) {
+    let blobUrl = '';
+    try {
+      blobUrl = await this._loadAndResizeImage(imageUrl);
+      const classifier = await this._classifierPromise;
+      const output = await classifier(blobUrl, this._nsfwLabels);
+      const nsfwDetected = output.some(result => result.score > this._threshold);
+      console.log(`Classification for ${imageUrl}:`, nsfwDetected ? 'NSFW' : 'Safe');
+      console.log('Detailed classification results:', output);
+      return nsfwDetected;
+    } catch (error) {
+      console.error('Error during NSFW classification: ', error);
+      throw error;
+    } finally {
+      if (blobUrl) {
+        URL.revokeObjectURL(blobUrl);
+      }
+    }
+  }
+
+  async _loadAndResizeImage(imageUrl) {
+    const img = await this._loadImage(imageUrl);
+    const offScreenCanvas = document.createElement('canvas');
+    const ctx = offScreenCanvas.getContext('2d');
+    offScreenCanvas.width = 124;
+    offScreenCanvas.height = 124;
+    ctx.drawImage(img, 0, 0, offScreenCanvas.width, offScreenCanvas.height);
+    return new Promise((resolve, reject) => {
+      offScreenCanvas.toBlob(blob => {
+        if (!blob) {
+          reject('Canvas to Blob conversion failed');
+          return;
         }
-    }
+        const blobUrl = URL.createObjectURL(blob);
+        resolve(blobUrl);
+      }, 'image/jpeg');
+    });
+  }
 
-    async _loadAndResizeImage(imageUrl) {
-        const img = await this._loadImage(imageUrl);
-        const offScreenCanvas = document.createElement('canvas');
-        const ctx = offScreenCanvas.getContext('2d');
-        offScreenCanvas.width = 124;
-        offScreenCanvas.height = 124;
-        ctx.drawImage(img, 0, 0, offScreenCanvas.width, offScreenCanvas.height);
-        return new Promise((resolve, reject) => {
-            offScreenCanvas.toBlob(blob => {
-                if (!blob) {
-                    reject('Canvas to Blob conversion failed');
-                    return;
-                }
-                const blobUrl = URL.createObjectURL(blob);
-                resolve(blobUrl);
-            }, 'image/jpeg');
-        });
-    }
+  async _loadImage(url) {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = () => resolve(img);
+      img.onerror = () => reject(`Failed to load image: ${url}`);
+      img.src = url;
+    });
+  }
 
-    async _loadImage(url) {
-        return new Promise((resolve, reject) => {
-            const img = new Image();
-            img.crossOrigin = 'anonymous';
-            img.onload = () => resolve(img);
-            img.onerror = () => reject(`Failed to load image: ${url}`);
-            img.src = url;
-        });
-    }
+  async isNsfwBulk(imageUrls, concurrencyLimit = 5) {
+    const semaphore = new Array(concurrencyLimit).fill(Promise.resolve());
+    const results = [];
 
-    async isNsfwBulk(imageUrls, concurrencyLimit = 5) {
-        const semaphore = new Array(concurrencyLimit).fill(Promise.resolve());
-        const results = [];
+    const processImage = async (imageUrl) => {
+      const index = await Promise.race(semaphore.map((p, index) => p.then(() => index)));
+      semaphore[index] = this.isNsfw(imageUrl).then(result => {
+        console.log(`Classification for ${imageUrl}:`, result ? 'NSFW' : 'Safe');
+        if (!result) {
+          window.displayImage(imageUrl);
+        }
+        results.push({ imageUrl, isNsfw: result });
+        return null;
+      }).catch(error => {
+        console.error(`Error processing image ${imageUrl}:`, error);
+        results.push({ imageUrl, error: error.toString() });
+        return null;
+      });
+    };
 
-        const processImage = async (imageUrl) => {
-            const index = await Promise.race(semaphore.map((p, index) => p.then(() => index)));
-            semaphore[index] = this.isNsfw(imageUrl).then(result => {
-                console.log(`Classification for ${imageUrl}:`, result ? 'NSFW' : 'Safe');
-                if (!result) { // If the image is safe, display it immediately
-                    window.displayImage(imageUrl); // Ensure displayImage is globally accessible
-                }
-                results.push({ imageUrl, isNsfw: result });
-                return null;
-            }).catch(error => {
-                console.error(`Error processing image ${imageUrl}:`, error);
-                results.push({ imageUrl, error: error.toString() });
-                return null;
-            });
-        };
-
-        await Promise.all(imageUrls.map(processImage));
-        await Promise.all(semaphore); // Wait for all ongoing processes to finish
-        return results;
-    }
-
+    await Promise.all(imageUrls.map(processImage));
+    await Promise.all(semaphore);
+    return results;
+  }
 }
 
 window.NsfwDetector = NsfwDetector;
