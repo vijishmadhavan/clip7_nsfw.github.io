@@ -20,31 +20,16 @@ class NsfwDetector {
             const classifier = await this._classifierPromise;
             const output = await classifier(blobUrl, this._nsfwLabels);
             
-            // Check if the top-ranked class contains 'child' or related terms
-            const topClass = output[0];
-            const isChildRelated = 
-                topClass.label.toLowerCase().includes('child') ||
-                topClass.label.toLowerCase().includes('kid') ||
-                topClass.label.toLowerCase().includes('baby') ||
-                topClass.label.toLowerCase().includes('toddler') ||
-                topClass.label.toLowerCase().includes('preschooler') ||
-                topClass.label.toLowerCase().includes('school_age_child') ||
-                topClass.label.toLowerCase().includes('preteen') ||
-                topClass.label.toLowerCase().includes('adolescent') ||
-                topClass.label.toLowerCase().includes('boy') ||
-                topClass.label.toLowerCase().includes('girl');
+            // Check if the top class is related to children
+            const topClass = output[0].class;
+            const isChildRelated = topClass.includes('CHILD') || topClass.includes('KID') || topClass.includes('BABY') || 
+                                   topClass.includes('TODDLER') || topClass.includes('PRESCHOOLER') || topClass.includes('SCHOOL_AGE_CHILD') || 
+                                   topClass.includes('PRETEEN') || topClass.includes('ADOLESCENT') || topClass.includes('TEENAGER') ||
+                                   topClass.includes('BOY') || topClass.includes('GIRL');
     
-            // If the top-ranked class is child-related, mark the image as NSFW
-            if (isChildRelated) {
-                console.log(`Classification for ${imageUrl}:`, 'NSFW (Child-related)');
-                console.log('Detailed classification results:', output);
-                return true;
-            }
-    
-            // For other cases, check if any class score is above the threshold
-            const nsfwDetected = output.some(result => result.score > this._threshold);
+            const nsfwDetected = isChildRelated || output.some(result => result.score > this._threshold);
             console.log(`Classification for ${imageUrl}:`, nsfwDetected ? 'NSFW' : 'Safe');
-            console.log('Detailed classification results:', output);
+            console.log('Detailed classification results:', output); // Log detailed results
             return nsfwDetected;
         } catch (error) {
             console.error('Error during NSFW classification: ', error);
@@ -55,6 +40,7 @@ class NsfwDetector {
             }
         }
     }
+    
 
     async _loadAndResizeImage(imageUrl) {
         const img = await this._loadImage(imageUrl);
