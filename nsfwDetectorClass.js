@@ -22,17 +22,7 @@ class NsfwDetector {
             
             // Check if the top-ranked class contains 'child' or related terms
             const topClass = output[0];
-            const isChildRelated = 
-                topClass.label.toLowerCase().includes('child') ||
-                topClass.label.toLowerCase().includes('kid') ||
-                topClass.label.toLowerCase().includes('baby') ||
-                topClass.label.toLowerCase().includes('toddler') ||
-                topClass.label.toLowerCase().includes('preschooler') ||
-                topClass.label.toLowerCase().includes('school_age_child') ||
-                topClass.label.toLowerCase().includes('preteen') ||
-                topClass.label.toLowerCase().includes('adolescent') ||
-                topClass.label.toLowerCase().includes('boy') ||
-                topClass.label.toLowerCase().includes('girl');
+            const isChildRelated = /child|kid|baby|toddler|preschooler|school_age_child|preteen|adolescent|boy|girl/i.test(topClass.label);
     
             // If the top-ranked class is child-related, mark the image as NSFW
             if (isChildRelated) {
