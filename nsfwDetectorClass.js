@@ -23,10 +23,10 @@ class NsfwDetector {
             // Check if any class score is above the threshold
             let nsfwDetected = output.some(result => result.score > this._threshold);
     
-            // If not detected as NSFW, check for child-related content
+            // If not detected as NSFW, check for child-related content in the top-ranked class
             if (!nsfwDetected) {
-                const topClasses = output.slice(0, 5); // Consider top 5 classes
-                nsfwDetected = topClasses.some(result => /child|kid|baby|toddler|preschooler|school_age_child|preteen|adolescent|boy|girl/i.test(result.label));
+                const topClass = output[0];
+                nsfwDetected = /child|kid|baby|toddler|preschooler|school_age_child|preteen|adolescent|boy|girl/i.test(topClass.label);
             }
     
             console.log(`Classification for ${imageUrl}:`, nsfwDetected ? 'NSFW' : 'Safe');
