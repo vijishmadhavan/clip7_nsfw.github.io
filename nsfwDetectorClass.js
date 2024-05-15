@@ -19,7 +19,22 @@ class NsfwDetector {
             blobUrl = await this._loadAndResizeImage(imageUrl);
             const classifier = await this._classifierPromise;
             const output = await classifier(blobUrl, this._nsfwLabels);
-            const nsfwDetected = output.some(result => result.score > this._threshold);
+            
+            // Check if any of the top 3 classes contain 'child' or related terms
+            const top3Classes = output.slice(0, 3);
+            const nsfwDetected = top3Classes.some(result => 
+                result.label.toLowerCase().includes('child') ||
+                result.label.toLowerCase().includes('kid') ||
+                result.label.toLowerCase().includes('baby') ||
+                result.label.toLowerCase().includes('toddler') ||
+                result.label.toLowerCase().includes('preschooler') ||
+                result.label.toLowerCase().includes('school_age_child') ||
+                result.label.toLowerCase().includes('preteen') ||
+                result.label.toLowerCase().includes('adolescent') ||
+                result.label.toLowerCase().includes('boy') ||
+                result.label.toLowerCase().includes('girl')
+            );
+
             console.log(`Classification for ${imageUrl}:`, nsfwDetected ? 'NSFW' : 'Safe');
             console.log('Detailed classification results:', output); // Log detailed results
             return nsfwDetected;
