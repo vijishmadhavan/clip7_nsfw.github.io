@@ -4,7 +4,7 @@ class NsfwDetector {
         this._nsfwLabels = [
             'FEMALE_BREAST_EXPOSED','KIDS','CHILD_FACE','CHILDREN','TEENAGER','NAKED','NUDE','PARTIAL_NUDITY','FEMALE_GENITALIA_EXPOSED', 'BUTTOCKS_EXPOSED', 'ANUS_EXPOSED',
         'MALE_GENITALIA_EXPOSED', 'BLOOD_SHED', 'VIOLENCE', 'GORE', 'PORNOGRAPHY', 'DRUGS', 'ALCOHOL','CHILD_PORN',
-        'CHILD_KISS','CHILD_VULGARITY','INAPROPRIATE_CLOTHING','SENSUAL_KISS','CHILD_PLAYING','CHILD_FACE',
+        'CHILD_KISS','CHILD_VULGARITY','INAPROPRIATE_CLOTHING','SENSUAL_KISS','CHILD_PLAYING',
         ];
         this._classifierPromise = window.tensorflowPipeline('zero-shot-image-classification', 'Xenova/clip-vit-base-patch32');
     }
