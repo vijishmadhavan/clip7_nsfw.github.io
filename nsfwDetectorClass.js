@@ -8,7 +8,7 @@ class NsfwDetector {
         'TODDLER','PRESCHOOLER','SCHOOL_AGE_CHILD','PRETEEN','ADOLESCENT','MALE_CHILD','FEMALE_CHILD','BOY','GIRL',
         'REVEALING_CLOTHING','LINGERIE','SWIMWEAR','SHEER_CLOTHING','BIKINI','UNDERWEAR','TIGHT_CLOTHING','PLUNGING_NECKLINE',
         'GARTER_BELT','FETISH_CLOTHING','LATEX_CLOTHING','FISHNET','MINI_SKIRT','BACKLESS_DRESS','TRANSPARENT_CLOTHING','BODYCON_DRESS', 'LEOTARD', 'STOCKINGS','REVEALING_GYM_WEAR',
-        'REAR_CUTOUT_DRESS','BOOTY_DRESS','HIGH_CUT_REAR_DRESS','EXPOSED_BUTTOCKS_DRESS','WET_REVEALING_CLOTHING', 'WET_SHEER_DRESS', 'CLINGY_WET_DRESS', 'SOAKED_TRANSPARENT_CLOTHING',
+        'REAR_CUTOUT_DRESS','BOOTY_DRESS','HIGH_CUT_REAR_DRESS','EXPOSED_BUTTOCKS_DRESS','WET_REVEALING_CLOTHING', 'WET_SHEER_DRESS', 'CLINGY_WET_DRESS', 'SOAKED_TRANSPARENT_CLOTHING','cleavage_dress',
         ];
         
         this._classifierPromise = window.tensorflowPipeline('zero-shot-image-classification', 'Xenova/clip-vit-base-patch32');
@@ -23,7 +23,7 @@ class NsfwDetector {
     
             // Check if the top class is related to a child
             const topClass = output[0];
-            const isChildRelated = /ANUS_EXPOSED|MALE_GENITALIA_EXPOSED|BUTTOCKS_EXPOSED|FEMALE_BREAST_EXPOSED|naked|nude|child|kid|baby|toddler|preschooler|school_age_child|preteen|adolescent|boy|girl/i.test(topClass.label);
+            const isChildRelated = /cleavage_dress|ANUS_EXPOSED|MALE_GENITALIA_EXPOSED|BUTTOCKS_EXPOSED|FEMALE_BREAST_EXPOSED|naked|nude|child|kid|baby|toddler|preschooler|school_age_child|preteen|adolescent|boy|girl/i.test(topClass.label);
     
             // If the top class is related to a child, mark it as NSFW
             if (isChildRelated) {
