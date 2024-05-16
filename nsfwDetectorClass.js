@@ -1,4 +1,4 @@
-class NsfwDetector {
+class NsfwDetectorClass {
     constructor() {
         this._threshold = 0.10;
         this._nsfwLabels = [
@@ -43,20 +43,9 @@ class NsfwDetector {
         }
     }
 
-    hasChild(topClassLabel_) {
-        const topClassLabel = topClassLabel_.toLowerCase();
-
-        return
-            topClassLabel.includes('child') ||
-            topClassLabel.includes('kid') ||
-            topClassLabel.includes('baby') ||
-            topClassLabel.includes('toddler') ||
-            topClassLabel.includes('preschooler') ||
-            topClassLabel.includes('school_age_child') ||
-            topClassLabel.includes('preteen') ||
-            topClassLabel.includes('adolescent') ||
-            topClassLabel.includes('boy') ||
-            topClassLabel.includes('girl');
+    hasChild(topClassLabel) {
+        // const topClassLabel = topClassLabel_.toLowerCase();
+        return /child|kid|baby|toddler|preschooler|school_age_child|preteen|adolescent|boy|girl/i.test(topClassLabel);
     }
 
     async _loadAndResizeImage(imageUrl) {
@@ -115,4 +104,4 @@ class NsfwDetector {
 
 }
 
-window.NsfwDetector = NsfwDetector;
+window.NsfwDetectorClass = NsfwDetectorClass;
