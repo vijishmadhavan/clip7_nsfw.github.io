@@ -14,41 +14,36 @@ class NsfwDetector {
     }
 
     async isNsfw(imageUrl) {
-      let blobUrl = '';
-      try {
-        blobUrl = await this._loadAndResizeImage(imageUrl);
-        const classifier = await this._classifierPromise;
-        const output = await classifier(blobUrl, this._nsfwLabels);
+        let blobUrl = '';
+        try {
+            blobUrl = await this._loadAndResizeImage(imageUrl);
+            const classifier = await this._classifierPromise;
+            const output = await classifier(blobUrl, this._nsfwLabels);
     
-        // Check if the top class is related to a child
-        const topClass = output[0];
-        const isChildRelated = this.hasChild(topClass.label);
+            // Check if the top class is related to a child
+            const topClass = output[0];
+            const isChildRelated = /child|kid|baby|toddler|preschooler|school_age_child|preteen|adolescent|boy|girl/i.test(topClass.label);
     
-        // If the top class is related to a child, mark it as NSFW
-        if (isChildRelated) {
-          console.log(`Classification for ${imageUrl}:`, 'NSFW (Child-related)');
-          console.log('Detailed classification results:', output);
-          return true;
+            // If the top class is related to a child, mark it as NSFW
+            if (isChildRelated) {
+                console.log(`Classification for ${imageUrl}:`, 'NSFW (Child-related)');
+                console.log('Detailed classification results:', output);
+                return true;
+            }
+    
+            // For other cases, check if any class score is above the threshold
+            const nsfwDetected = output.some(result => result.score > this._threshold);
+            console.log(`Classification for ${imageUrl}:`, nsfwDetected ? 'NSFW' : 'Safe');
+            console.log('Detailed classification results:', output);
+            return nsfwDetected;
+        } catch (error) {
+            console.error('Error during NSFW classification: ', error);
+            throw error;
+        } finally {
+            if (blobUrl) {
+                URL.revokeObjectURL(blobUrl);
+            }
         }
-    
-        // For other cases, check if any class score is above the threshold
-        const nsfwDetected = output.some(result => result.score > this._threshold);
-        console.log(`Classification for ${imageUrl}:`, nsfwDetected ? 'NSFW' : 'Safe');
-        console.log('Detailed classification results:', output);
-        return nsfwDetected;
-      } catch (error) {
-        console.error('Error during NSFW classification: ', error);
-        throw error;
-      } finally {
-        if (blobUrl) {
-          URL.revokeObjectURL(blobUrl);
-        }
-      }
-    }
-    
-    hasChild(topClassLabel) {
-      const lowercaseLabel = topClassLabel.toLowerCase();
-      return /child|kid|baby|toddler|preschooler|school_age_child|preteen|adolescent|boy|girl/i.test(lowercaseLabel);
     }
 
     async _loadAndResizeImage(imageUrl) {
