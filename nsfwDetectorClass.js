@@ -1,4 +1,4 @@
-class NsfwDetectorClass {
+class NsfwDetector {
     constructor() {
         this._threshold = 0.10;
         this._nsfwLabels = [
@@ -104,4 +104,4 @@ class NsfwDetectorClass {
 
 }
 
-window.NsfwDetectorClass = NsfwDetectorClass;
+window.NsfwDetector = NsfwDetector;
