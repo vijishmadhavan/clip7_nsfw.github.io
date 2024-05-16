@@ -2,7 +2,7 @@ class NsfwDetector {
     constructor() {
         this._threshold = 0.10;
         this._nsfwLabels = [
-            'ANIME_NAKED','ANIME_PORN','CARTOON_NAKED','CARTOON_PORN','CARTOON_KID','FEMALE_BREAST_EXPOSED','KIDS','CHILD_FACE','CHILDREN','TEENAGER','NAKED','NUDE','PARTIAL_NUDITY','FEMALE_GENITALIA_EXPOSED', 'BUTTOCKS_EXPOSED', 'ANUS_EXPOSED',
+            'NSFW','SFW','ANIME_NAKED','ANIME_PORN','CARTOON_NAKED','CARTOON_PORN','CARTOON_KID','FEMALE_BREAST_EXPOSED','KIDS','CHILD_FACE','CHILDREN','TEENAGER','NAKED','NUDE','PARTIAL_NUDITY','FEMALE_GENITALIA_EXPOSED', 'BUTTOCKS_EXPOSED', 'ANUS_EXPOSED',
         'MALE_GENITALIA_EXPOSED', 'BLOOD_SHED', 'VIOLENCE', 'GORE', 'PORNOGRAPHY', 'DRUGS', 'ALCOHOL','CHILD_PORN',
         'CHILD_KISS','CHILD_VULGARITY','INAPROPRIATE_CLOTHING','SENSUAL_KISS','CHILD_PLAYING','LYING_ON_BED','BABY',
         'TODDLER','PRESCHOOLER','SCHOOL_AGE_CHILD','PRETEEN','ADOLESCENT','MALE_CHILD','FEMALE_CHILD','BOY','GIRL',
@@ -10,7 +10,8 @@ class NsfwDetector {
         'GARTER_BELT','FETISH_CLOTHING','LATEX_CLOTHING','FISHNET','MINI_SKIRT','BACKLESS_DRESS','TRANSPARENT_CLOTHING','BODYCON_DRESS', 'LEOTARD', 'STOCKINGS','REVEALING_GYM_WEAR',
         'REAR_CUTOUT_DRESS','BOOTY_DRESS','HIGH_CUT_REAR_DRESS','EXPOSED_BUTTOCKS_DRESS','WET_REVEALING_CLOTHING', 'WET_SHEER_DRESS', 'CLINGY_WET_DRESS', 'SOAKED_TRANSPARENT_CLOTHING',
         ];
-        this._classifierPromise = window.tensorflowPipeline('zero-shot-image-classification', 'Xenova/clip-vit-base-patch32');
+        // this._classifierPromise = window.tensorflowPipeline('zero-shot-image-classification', 'Xenova/clip-vit-base-patch32');
+        this._classifierPromise = window.tensorflowPipeline('image-classification', 'AdamCodd/vit-base-nsfw-detector');
     }
 
     async isNsfw(imageUrl) {
