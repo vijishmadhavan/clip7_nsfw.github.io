@@ -23,7 +23,7 @@ class NsfwDetector {
     
             // Check if the top class is related to a child
             const topClass = output[0];
-            const isChildRelated = /LINGERIE|naked|nude|child|kid|baby|toddler|preschooler|school_age_child|preteen|adolescent|boy|girl/i.test(topClass.label);
+            const isChildRelated = /ANUS_EXPOSED|MALE_GENITALIA_EXPOSED|BUTTOCKS_EXPOSED|FEMALE_BREAST_EXPOSED|naked|nude|child|kid|baby|toddler|preschooler|school_age_child|preteen|adolescent|boy|girl/i.test(topClass.label);
     
             // If the top class is related to a child, mark it as NSFW
             if (isChildRelated) {
