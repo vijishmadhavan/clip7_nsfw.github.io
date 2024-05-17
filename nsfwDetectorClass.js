@@ -2,7 +2,7 @@ class NsfwDetector {
     constructor() {
         this._nsfwLabels = ['NSFW', 'SFW'];
         this._subjectLabels = ['ADULT', 'CHILD', 'OBJECT', 'ROBOT', 'ANIMAL', 'OTHER']; // Subject categories
-        this._dressLabels = ['VULGAR_DRESS', 'DECENT_DRESS', 'OTHER']; // Dress style categories
+        this._dressLabels = ['VULGAR_DRESS', 'TIGHT_DRESS', 'DECENT_DRESS', 'OTHER']; // Expanded dress style categories
         this._classifierPromise = window.tensorflowPipeline('zero-shot-image-classification', 'Xenova/clip-vit-base-patch32');
     }
 
@@ -37,16 +37,16 @@ class NsfwDetector {
                     const topDressClass = dressOutput[0];
                     console.log('Detailed dress classification results:', dressOutput);
 
-                    if (topDressClass.label === 'VULGAR_DRESS') {
-                        console.log(`Blocked: Adult wearing vulgar dress.`);
-                        return true; // Block if vulgar dress
+                    if (topDressClass.label === 'VULGAR_DRESS' || topDressClass.label === 'TIGHT_DRESS') {
+                        console.log(`Blocked: Adult wearing vulgar or tight dress.`);
+                        return true; // Block if vulgar or tight dress
                     } else {
                         console.log(`Displayed: Adult wearing decent or other type of dress.`);
                         return false; // Display if decent or other type of dress
                     }
                 } else {
                     console.log(`Displayed: Subject is not an adult or child (could be object, robot, animal, etc.).`);
-                    return false; // Display all other categories
+                    return false; // Display all other safe categories
                 }
             }
         } catch (error) {
@@ -80,7 +80,7 @@ class NsfwDetector {
 
     async _loadImage(url) {
         return new Promise((resolve, reject) => {
-            const img = new Image();
+            const img is new Image();
             img.crossOrigin = 'anonymous';
             img.onload = () => resolve(img);
             img.onerror = () => reject(`Failed to load image: ${url}`);
@@ -90,3 +90,4 @@ class NsfwDetector {
 }
 
 window.NsfwDetector = NsfwDetector;
+
