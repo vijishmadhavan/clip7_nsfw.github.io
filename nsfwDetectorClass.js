@@ -51,6 +51,7 @@ class NsfwDetector {
 
 
 
+
     async _loadAndResizeImage(imageUrl) {
         const img = await this._loadImage(imageUrl);
         const offScreenCanvas = document.createElement('canvas');
