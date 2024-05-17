@@ -1,6 +1,7 @@
 class NsfwDetector {
     constructor() {
         this._nsfwLabels = ['NSFW', 'SFW'];
+        this._ageLabels = ['ADULT', 'CHILD', 'TEENAGER', 'BABY', 'TODDLER', 'PRESCHOOLER', 'SCHOOL_AGE_CHILD', 'PRETEEN', 'ADOLESCENT'];
         this._classifierPromise = window.tensorflowPipeline('zero-shot-image-classification', 'Xenova/clip-vit-base-patch32');
     }
 
@@ -19,9 +20,20 @@ class NsfwDetector {
                 console.log('Detailed classification results:', output);
                 return true;
             } else {
-                console.log(`Classification for ${imageUrl}:`, 'Safe');
-                console.log('Detailed classification results:', output);
-                return false;
+                // If the image is classified as SFW, check for age-related content
+                const ageOutput = await classifier(blobUrl, this._ageLabels);
+                const topAgeClass = ageOutput[0];
+                const isAdult = topAgeClass.label === 'ADULT';
+
+                if (isAdult) {
+                    console.log(`Classification for ${imageUrl}:`, 'Safe (Adult)');
+                    console.log('Detailed classification results:', ageOutput);
+                    return false;
+                } else {
+                    console.log(`Classification for ${imageUrl}:`, 'Safe (Children/Teenagers)');
+                    console.log('Detailed classification results:', ageOutput);
+                    return true;
+                }
             }
         } catch (error) {
             console.error('Error during NSFW classification: ', error);
@@ -70,7 +82,7 @@ class NsfwDetector {
             const index = await Promise.race(semaphore.map((p, index) => p.then(() => index)));
             semaphore[index] = this.isNsfw(imageUrl).then(result => {
                 console.log(`Classification for ${imageUrl}:`, result ? 'NSFW' : 'Safe');
-                if (!result) { // If the image is safe, display it immediately
+                if (!result) { // If the image is safe (adult), display it immediately
                     window.displayImage(imageUrl); // Ensure displayImage is globally accessible
                 }
                 results.push({ imageUrl, isNsfw: result });
@@ -87,5 +99,4 @@ class NsfwDetector {
         return results;
     }
 }
-
 window.NsfwDetector = NsfwDetector;
