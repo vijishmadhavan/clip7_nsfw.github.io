@@ -1,7 +1,8 @@
 class NsfwDetector {
     constructor() {
         this._nsfwLabels = ['NSFW', 'SFW'];
-        this._ageLabels = ['ADULT', 'CHILD', 'TEENAGER', 'BABY', 'TODDLER', 'PRESCHOOLER', 'SCHOOL_AGE_CHILD', 'PRETEEN', 'ADOLESCENT'];
+        this._ageLabels = ['ADULT', 'CHILD'];
+        this._dressLabels = ['VULGAR', 'DECENT'];  // Labels for dress style
         this._classifierPromise = window.tensorflowPipeline('zero-shot-image-classification', 'Xenova/clip-vit-base-patch32');
     }
 
@@ -18,21 +19,32 @@ class NsfwDetector {
             if (isNsfw) {
                 console.log(`Classification for ${imageUrl}:`, 'NSFW');
                 console.log('Detailed classification results:', output);
-                return true;
+                return true; // Block immediately if NSFW
             } else {
-                // If the image is classified as SFW, check for age-related content
+                // If the image is classified as SFW, check if it features an adult or child
                 const ageOutput = await classifier(blobUrl, this._ageLabels);
                 const topAgeClass = ageOutput[0];
-                const isAdult = topAgeClass.label === 'ADULT';
+                const isChild = topAgeClass.label === 'CHILD';
 
-                if (isAdult) {
-                    console.log(`Classification for ${imageUrl}:`, 'Safe (Adult)');
+                if (isChild) {
+                    console.log(`Classification for ${imageUrl}:`, 'Safe (Child)');
                     console.log('Detailed classification results:', ageOutput);
-                    return false;
+                    return true; // Consider further action or blocking
                 } else {
-                    console.log(`Classification for ${imageUrl}:`, 'Safe (Children/Teenagers)');
-                    console.log('Detailed classification results:', ageOutput);
-                    return true;
+                    // Check dress style if adult
+                    const dressOutput = await classifier(blobUrl, this._dressLabels);
+                    const topDressClass = dressOutput[0];
+                    const isVulgar = topDressClass.label === 'VULGAR';
+
+                    if (isVulgar) {
+                        console.log(`Classification for ${imageUrl}:`, 'Blocked (Vulgar Dress)');
+                        console.log('Detailed classification results:', dressOutput);
+                        return true; // Block due to vulgar dress
+                    } else {
+                        console.log(`Classification for ${imageUrl}:`, 'Safe (Decent Dress)');
+                        console.log('Detailed classification results:', dressOutput);
+                        return false; // Image is safe
+                    }
                 }
             }
         } catch (error) {
@@ -73,30 +85,7 @@ class NsfwDetector {
             img.src = url;
         });
     }
-
-    async isNsfwBulk(imageUrls, concurrencyLimit = 5) {
-        const semaphore = new Array(concurrencyLimit).fill(Promise.resolve());
-        const results = [];
-
-        const processImage = async (imageUrl) => {
-            const index = await Promise.race(semaphore.map((p, index) => p.then(() => index)));
-            semaphore[index] = this.isNsfw(imageUrl).then(result => {
-                console.log(`Classification for ${imageUrl}:`, result ? 'NSFW' : 'Safe');
-                if (!result) { // If the image is safe (adult), display it immediately
-                    window.displayImage(imageUrl); // Ensure displayImage is globally accessible
-                }
-                results.push({ imageUrl, isNsfw: result });
-                return null;
-            }).catch(error => {
-                console.error(`Error processing image ${imageUrl}:`, error);
-                results.push({ imageUrl, error: error.toString() });
-                return null;
-            });
-        };
-
-        await Promise.all(imageUrls.map(processImage));
-        await Promise.all(semaphore); // Wait for all ongoing processes to finish
-        return results;
-    }
 }
+
 window.NsfwDetector = NsfwDetector;
+
