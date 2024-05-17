@@ -37,13 +37,14 @@ class NsfwDetector {
                     const topDressClass = dressOutput[0];
                     console.log('Detailed dress classification results:', dressOutput);
 
-                    if (topDressClass.label === 'VULGAR_DRESS' || topDressClass.label === 'TIGHT_DRESS') || topDressClass.label === 'BUTTOCKS_DRESS' || topDressClass.label === 'CLEAVAGE_DRESS') {
-                        console.log(`Blocked: Adult wearing vulgar dress.`);
-                        return true; // Block if vulgar dress
+                    if (topDressClass.label === 'VULGAR_DRESS' || topDressClass.label === 'TIGHT_DRESS' || topDressClass.label === 'BUTTOCKS_DRESS' || topDressClass.label === 'CLEAVAGE_DRESS') {
+                        console.log(`Blocked: Adult wearing inappropriate dress.`);
+                        return true; // Block if any inappropriate dress types are detected
                     } else {
                         console.log(`Displayed: Adult wearing decent or other type of dress.`);
                         return false; // Display if decent or other type of dress
                     }
+
                 } else {
                     console.log(`Displayed: Subject is not an adult or child (could be object, robot, animal, etc.).`);
                     return false; // Display all other categories
