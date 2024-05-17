@@ -8,41 +8,39 @@ class NsfwDetector {
 
     async isNsfw(imageUrl) {
         let blobUrl = '';
-    
         try {
             blobUrl = await this._loadAndResizeImage(imageUrl);
-    
             const classifier = await this._classifierPromise;
-    
             const nsfwOutput = await classifier(blobUrl, this._nsfwLabels);
+    
             const topClass = nsfwOutput[0];
             const isNsfw = topClass.label === 'NSFW';
     
             if (isNsfw) {
-                return { block: true, reason: 'NSFW content' };
+                return true; // Block immediately if NSFW
             } else {
                 // If the image is classified as SFW, check the subject
                 const subjectOutput = await classifier(blobUrl, this._subjectLabels);
                 const topSubjectClass = subjectOutput[0];
     
                 if (topSubjectClass.label === 'CHILD') {
-                    return { block: true, reason: 'Image features a child' };
+                    return true; // Block images with children
                 } else if (topSubjectClass.label === 'ADULT') {
                     // Check dress style if subject is an adult
                     const dressOutput = await classifier(blobUrl, this._dressLabels);
                     const topDressClass = dressOutput[0];
     
                     if (topDressClass.label === 'VULGAR_DRESS' || topDressClass.label === 'TIGHT_DRESS' || topDressClass.label === 'BUTTOCKS_DRESS' || topDressClass.label === 'CLEAVAGE_DRESS') {
-                        return { block: true, reason: 'Inappropriate dress' };
+                        return true; // Block if any inappropriate dress types are detected
                     } else {
-                        return { block: false, reason: 'Content is appropriate' };
+                        return false; // Display if decent or other type of dress
                     }
                 } else {
-                    return { block: false, reason: 'Content is appropriate' };
+                    return false; // Display all other categories
                 }
             }
         } catch (error) {
-            console.error(`Error processing image ${imageUrl}:`, error);
+            console.error('Error during NSFW classification: ', error);
             throw error;
         } finally {
             if (blobUrl) {
@@ -50,6 +48,7 @@ class NsfwDetector {
             }
         }
     }
+
 
 
     async _loadAndResizeImage(imageUrl) {
