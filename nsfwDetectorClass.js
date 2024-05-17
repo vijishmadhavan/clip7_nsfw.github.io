@@ -34,14 +34,12 @@ class NsfwDetector {
 
                     if (topDressClass.label === 'VULGAR_DRESS' || topDressClass.label === 'TIGHT_DRESS' || topDressClass.label === 'BUTTOCKS_DRESS' || topDressClass.label === 'CLEAVAGE_DRESS') {
                         return true; // Block if any inappropriate dress types are detected
-                    } else {
-                        window.displayImage(imageUrl); // Display the image
-                        return false; // Display if decent or other type of dress
                     }
-                } else {
-                    window.displayImage(imageUrl); // Display the image
-                    return false; // Display all other categories
                 }
+
+                // Display the image if it passes all checks
+                window.displayImage(imageUrl);
+                return false;
             }
         } catch (error) {
             console.error(`Error processing image ${imageUrl}:`, error);
