@@ -37,7 +37,7 @@ class NsfwDetector {
                     const topDressClass = dressOutput[0];
                     console.log('Detailed dress classification results:', dressOutput);
 
-                    if (topDressClass.label === 'VULGAR_DRESS' || topDressClass.label === 'TIGHT_DRESS') || topDressClass.label === 'BUTTOCKS_DRESS' || topDressClass.label === 'CLEAVAGE_DRESS' {
+                    if (topDressClass.label === 'VULGAR_DRESS' || topDressClass.label === 'TIGHT_DRESS') || topDressClass.label === 'BUTTOCKS_DRESS' || topDressClass.label === 'CLEAVAGE_DRESS') {
                         console.log(`Blocked: Adult wearing vulgar dress.`);
                         return true; // Block if vulgar dress
                     } else {
