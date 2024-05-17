@@ -28,8 +28,8 @@ class NsfwDetector {
                 console.log(`Subject classification for ${imageUrl}:`, topSubjectClass.label);
                 console.log('Detailed subject classification results:', subjectOutput);
 
-                // Block if the subject is a child
                 if (topSubjectClass.label === 'CHILD') {
+                    console.log(`Blocked: Image features a child.`);
                     return true; // Block images with children
                 } else if (topSubjectClass.label === 'ADULT') {
                     // Check dress style if subject is an adult
@@ -37,9 +37,16 @@ class NsfwDetector {
                     const topDressClass = dressOutput[0];
                     console.log('Detailed dress classification results:', dressOutput);
 
-                    return topDressClass.label === 'VULGAR_DRESS'; // Block if vulgar dress, otherwise show
+                    if (topDressClass.label === 'VULGAR_DRESS') {
+                        console.log(`Blocked: Adult wearing vulgar dress.`);
+                        return true; // Block if vulgar dress
+                    } else {
+                        console.log(`Displayed: Adult wearing decent or other type of dress.`);
+                        return false; // Display if decent or other type of dress
+                    }
                 } else {
-                    return false; // Show all other safe categories
+                    console.log(`Displayed: Subject is not an adult or child (could be object, robot, animal, etc.).`);
+                    return false; // Display all other categories
                 }
             }
         } catch (error) {
@@ -83,5 +90,3 @@ class NsfwDetector {
 }
 
 window.NsfwDetector = NsfwDetector;
-
-
