@@ -1,12 +1,6 @@
 class NsfwDetector {
     constructor() {
-        this._nsfwLabels = ['NSFW', 'SFW'];
-        this._childRelatedLabels = [
-            'KIDS', 'CHILDREN', 'TEENAGER', 'BABY', 'TODDLER', 'PRESCHOOLER',
-            'SCHOOL_AGE_CHILD', 'PRETEEN', 'ADOLESCENT', 'MALE_CHILD', 'FEMALE_CHILD',
-            'BOY', 'GIRL', 'TEEN', 'MINOR', 'UNDERAGE', 'JUVENILE', 'YOUTH', 'YOUNGSTER',
-            'CHILD_FACE', 'CHILD_BODY'
-        ];
+        this._nsfwLabels = ['NSFW', 'SFW', 'KIDS', 'CHILDREN', 'TEENAGER', 'BABY', 'TODDLER', 'PRESCHOOLER', 'SCHOOL_AGE_CHILD', 'PRETEEN', 'ADOLESCENT', 'MALE_CHILD', 'FEMALE_CHILD', 'BOY', 'GIRL', 'TEEN', 'MINOR', 'UNDERAGE', 'JUVENILE', 'YOUTH', 'YOUNGSTER', 'CHILD_FACE', 'CHILD_BODY'];
         this._classifierPromise = window.tensorflowPipeline('zero-shot-image-classification', 'Xenova/clip-vit-base-patch32');
     }
 
@@ -19,26 +13,16 @@ class NsfwDetector {
 
             const topClass = output[0];
             const isNsfw = topClass.label === 'NSFW';
+            const isChildRelated = this._nsfwLabels.slice(2).includes(topClass.label);
 
-            if (isNsfw) {
+            if (isNsfw || isChildRelated) {
                 console.log(`Classification for ${imageUrl}:`, 'NSFW');
                 console.log('Detailed classification results:', output);
                 return true;
             } else {
-                // If the image is initially marked as SFW, check for child-related content
-                const childOutput = await classifier(blobUrl, this._childRelatedLabels);
-                const topChildClass = childOutput[0];
-                const isChildRelated = this._childRelatedLabels.includes(topChildClass.label);
-
-                if (isChildRelated) {
-                    console.log(`Classification for ${imageUrl}:`, 'NSFW (Child-related)');
-                    console.log('Detailed classification results:', childOutput);
-                    return true;
-                } else {
-                    console.log(`Classification for ${imageUrl}:`, 'Safe');
-                    console.log('Detailed classification results:', output);
-                    return false;
-                }
+                console.log(`Classification for ${imageUrl}:`, 'Safe');
+                console.log('Detailed classification results:', output);
+                return false;
             }
         } catch (error) {
             console.error('Error during NSFW classification: ', error);
