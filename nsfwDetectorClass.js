@@ -1,7 +1,26 @@
 class NsfwDetector {
     constructor() {
-        this._threshold = 0.01;
-        this._nsfwLabels = ['NSFW','SFW'
+        this._nsfwLabels = ['NSFW', 'SFW'];
+        this._childRelatedLabels = [
+            'KIDS', 'CHILDREN', 'TEENAGER', 'BABY', 'TODDLER', 'PRESCHOOLER',
+            'SCHOOL_AGE_CHILD', 'PRETEEN', 'ADOLESCENT', 'MALE_CHILD', 'FEMALE_CHILD',
+            'BOY', 'GIRL', 'TEEN', 'MINOR', 'UNDERAGE', 'JUVENILE', 'YOUTH', 'YOUNGSTER',
+            'CHILD_FACE', 'CHILD_BODY', 'CHILD_PLAYING', 'CHILD_SLEEPING', 'CHILD_EATING',
+            'CHILD_STUDYING', 'CHILD_READING', 'CHILD_SINGING', 'CHILD_DANCING',
+            'CHILD_SWIMMING', 'CHILD_RUNNING', 'CHILD_JUMPING', 'CHILD_SITTING',
+            'CHILD_STANDING', 'CHILD_WALKING', 'CHILD_CRAWLING', 'CHILD_CRYING',
+            'CHILD_LAUGHING', 'CHILD_SMILING', 'CHILD_FROWNING', 'CHILD_POUTING',
+            'CHILD_SCARED', 'CHILD_ANGRY', 'CHILD_SURPRISED', 'CHILD_BORED',
+            'CHILD_TIRED', 'CHILD_SLEEPING', 'CHILD_INJURED', 'CHILD_SICK',
+            'CHILD_IN_HOSPITAL', 'CHILD_IN_WHEELCHAIR', 'CHILD_WITH_CAST',
+            'CHILD_WITH_BANDAGE', 'CHILD_WITH_BRUISE', 'CHILD_WITH_SCAR',
+            'CHILD_WITH_GLASSES', 'CHILD_WITH_BRACES', 'CHILD_WITH_FRECKLES',
+            'CHILD_WITH_BRACES', 'CHILD_WITH_CURLY_HAIR', 'CHILD_WITH_STRAIGHT_HAIR',
+            'CHILD_WITH_PONYTAIL', 'CHILD_WITH_PIGTAILS', 'CHILD_WITH_BRAIDS',
+            'CHILD_WITH_BANGS', 'CHILD_WITH_BUZZ_CUT', 'CHILD_WITH_MOHAWK',
+            'CHILD_WITH_DREADLOCKS', 'CHILD_IN_SCHOOL_UNIFORM', 'CHILD_IN_COSTUME',
+            'CHILD_IN_PAJAMAS', 'CHILD_IN_DIAPER', 'CHILD_IN_BIKINI', 'CHILD_IN_SWIMSUIT',
+            'CHILD_NUDE', 'CHILD_NAKED', 'CHILD_UNDERWEAR', 'CHILD_PANTIES', 'CHILD_BRA',
         ];
         this._classifierPromise = window.tensorflowPipeline('zero-shot-image-classification', 'Xenova/clip-vit-base-patch32');
     }
@@ -12,10 +31,30 @@ class NsfwDetector {
             blobUrl = await this._loadAndResizeImage(imageUrl);
             const classifier = await this._classifierPromise;
             const output = await classifier(blobUrl, this._nsfwLabels);
-            const nsfwDetected = output.some(result => result.score > this._threshold);
-            console.log(`Classification for ${imageUrl}:`, nsfwDetected ? 'NSFW' : 'Safe');
-            console.log('Detailed classification results:', output); // Log detailed results
-            return nsfwDetected;
+
+            const topClass = output[0];
+            const isNsfw = topClass.label === 'NSFW';
+
+            if (isNsfw) {
+                console.log(`Classification for ${imageUrl}:`, 'NSFW');
+                console.log('Detailed classification results:', output);
+                return true;
+            } else {
+                // If the image is initially marked as SFW, check for child-related content
+                const childOutput = await classifier(blobUrl, this._childRelatedLabels);
+                const topChildClass = childOutput[0];
+                const isChildRelated = this._childRelatedLabels.includes(topChildClass.label);
+
+                if (isChildRelated) {
+                    console.log(`Classification for ${imageUrl}:`, 'NSFW (Child-related)');
+                    console.log('Detailed classification results:', childOutput);
+                    return true;
+                } else {
+                    console.log(`Classification for ${imageUrl}:`, 'Safe');
+                    console.log('Detailed classification results:', output);
+                    return false;
+                }
+            }
         } catch (error) {
             console.error('Error during NSFW classification: ', error);
             throw error;
@@ -79,7 +118,6 @@ class NsfwDetector {
         await Promise.all(semaphore); // Wait for all ongoing processes to finish
         return results;
     }
-
 }
 
 window.NsfwDetector = NsfwDetector;
