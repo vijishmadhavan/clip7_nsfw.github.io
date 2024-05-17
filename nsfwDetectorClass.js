@@ -2,7 +2,7 @@ class NsfwDetector {
     constructor() {
         this._nsfwLabels = ['NSFW', 'SFW'];
         this._subjectLabels = ['ADULT', 'CHILD', 'OBJECT', 'ROBOT', 'ANIMAL', 'OTHER']; // Subject categories
-        this._dressLabels = ['VULGAR_DRESS', 'TIGHT_DRESS','DECENT_DRESS', 'OTHER']; // Dress style categories
+        this._dressLabels = ['VULGAR_DRESS', 'TIGHT_DRESS','CLEAVAGE_DRESS','BUTTOCKS_DRESS','DECENT_DRESS', 'OTHER']; // Dress style categories
         this._classifierPromise = window.tensorflowPipeline('zero-shot-image-classification', 'Xenova/clip-vit-base-patch32');
     }
 
@@ -37,7 +37,7 @@ class NsfwDetector {
                     const topDressClass = dressOutput[0];
                     console.log('Detailed dress classification results:', dressOutput);
 
-                    if (topDressClass.label === 'VULGAR_DRESS' || topDressClass.label === 'TIGHT_DRESS') {
+                    if (topDressClass.label === 'VULGAR_DRESS' || topDressClass.label === 'TIGHT_DRESS') || topDressClass.label === 'BUTTOCKS_DRESS' || topDressClass.label === 'CLEAVAGE_DRESS' {
                         console.log(`Blocked: Adult wearing vulgar dress.`);
                         return true; // Block if vulgar dress
                     } else {
