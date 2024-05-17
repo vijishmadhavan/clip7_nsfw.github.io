@@ -17,16 +17,12 @@ class NsfwDetector {
             const isNsfw = topClass.label === 'NSFW';
     
             if (isNsfw) {
-                console.log(`Classification for ${imageUrl}:`, 'NSFW');
-                console.log('Detailed classification results:', nsfwOutput);
+                console.log(`Blocked: NSFW content detected.`);
                 return true; // Block immediately if NSFW
             } else {
                 // If the image is classified as SFW, check the subject
                 const subjectOutput = await classifier(blobUrl, this._subjectLabels);
                 const topSubjectClass = subjectOutput[0];
-    
-                console.log(`Subject classification for ${imageUrl}:`, topSubjectClass.label);
-                console.log('Detailed subject classification results:', subjectOutput);
     
                 if (topSubjectClass.label === 'CHILD') {
                     console.log(`Blocked: Image features a child.`);
@@ -35,17 +31,16 @@ class NsfwDetector {
                     // Check dress style if subject is an adult
                     const dressOutput = await classifier(blobUrl, this._dressLabels);
                     const topDressClass = dressOutput[0];
-                    console.log('Detailed dress classification results:', dressOutput);
     
                     if (topDressClass.label === 'VULGAR_DRESS' || topDressClass.label === 'TIGHT_DRESS' || topDressClass.label === 'BUTTOCKS_DRESS' || topDressClass.label === 'CLEAVAGE_DRESS') {
-                        console.log(`Blocked: Adult wearing inappropriate dress.`);
+                        console.log(`Blocked: Inappropriate dress detected.`);
                         return true; // Block if any inappropriate dress types are detected
                     } else {
-                        console.log(`Displayed: Adult wearing decent or other type of dress.`);
+                        console.log(`Displayed: Content is appropriate.`);
                         return false; // Display if decent or other type of dress
                     }
                 } else {
-                    console.log(`Displayed: Subject is not an adult or child (could be object, robot, animal, etc.).`);
+                    console.log(`Displayed: Content is appropriate.`);
                     return false; // Display all other categories
                 }
             }
@@ -58,6 +53,7 @@ class NsfwDetector {
             }
         }
     }
+
 
 
     async _loadAndResizeImage(imageUrl) {
