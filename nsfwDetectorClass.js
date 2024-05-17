@@ -8,39 +8,37 @@ class NsfwDetector {
 
     async isNsfw(imageUrl) {
         let blobUrl = '';
-
+    
         try {
             blobUrl = await this._loadAndResizeImage(imageUrl);
-
+    
             const classifier = await this._classifierPromise;
-
+    
             const nsfwOutput = await classifier(blobUrl, this._nsfwLabels);
             const topClass = nsfwOutput[0];
             const isNsfw = topClass.label === 'NSFW';
-
+    
             if (isNsfw) {
-                return true; // Block immediately if NSFW
+                return { block: true, reason: 'NSFW content' };
             } else {
                 // If the image is classified as SFW, check the subject
                 const subjectOutput = await classifier(blobUrl, this._subjectLabels);
                 const topSubjectClass = subjectOutput[0];
-
+    
                 if (topSubjectClass.label === 'CHILD') {
-                    return true; // Block images with children
+                    return { block: true, reason: 'Image features a child' };
                 } else if (topSubjectClass.label === 'ADULT') {
                     // Check dress style if subject is an adult
                     const dressOutput = await classifier(blobUrl, this._dressLabels);
                     const topDressClass = dressOutput[0];
-
+    
                     if (topDressClass.label === 'VULGAR_DRESS' || topDressClass.label === 'TIGHT_DRESS' || topDressClass.label === 'BUTTOCKS_DRESS' || topDressClass.label === 'CLEAVAGE_DRESS') {
-                        return true; // Block if any inappropriate dress types are detected
+                        return { block: true, reason: 'Inappropriate dress' };
                     } else {
-                        window.displayImage(imageUrl); // Display the image
-                        return false; // Display if decent or other type of dress
+                        return { block: false, reason: 'Content is appropriate' };
                     }
                 } else {
-                    window.displayImage(imageUrl); // Display the image
-                    return false; // Display all other categories
+                    return { block: false, reason: 'Content is appropriate' };
                 }
             }
         } catch (error) {
