@@ -31,18 +31,8 @@ class NsfwDetector {
             const classifier = await this._classifierPromise;
             const output = await classifier(blobUrl, [...this._nsfwLabels, ...this._sfwLabels]);
     
-            // Check if the top class is related to a child
-            const topClass = output[0];
-            const isChild = /cleavage_dress|ANUS_EXPOSED|MALE_GENITALIA_EXPOSED|BUTTOCKS_EXPOSED|FEMALE_BREAST_EXPOSED|naked|nude|child|kid|baby|toddler|preschooler|school_age_child|preteen|adolescent|boy|girl/i.test(topClass.label);
-    
-            // If the top class is related to a child, mark it as NSFW
-            if (isChild) {
-                console.log(`Classification for ${imageUrl}:`, 'NSFW (Child-related)');
-                console.log('Detailed classification results:', output);
-                return true;
-            }
-    
             // Check if the top class is NSFW
+            const topClass = output[0];
             const isNsfw = this._nsfwLabels.includes(topClass.label);
     
             console.log(`Classification for ${imageUrl}:`, isNsfw ? 'NSFW' : 'Safe');
