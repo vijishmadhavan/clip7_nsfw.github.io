@@ -87,3 +87,5 @@ class NsfwDetector {
         return results;
     }
 }
+
+window.NsfwDetector = NsfwDetector;
