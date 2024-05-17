@@ -1,8 +1,8 @@
 class NsfwDetector {
     constructor() {
         this._nsfwLabels = ['NSFW', 'SFW'];
-        this._ageLabels = ['ADULT', 'CHILD'];
-        this._dressLabels = ['VULGAR', 'DECENT'];  // Labels for dress style
+        this._subjectLabels = ['ADULT', 'CHILD', 'OBJECT', 'ROBOT', 'ANIMAL', 'OTHER']; // Subject categories
+        this._dressLabels = ['VULGAR_DRESS', 'DECENT_DRESS', 'OTHER']; // Dress style categories
         this._classifierPromise = window.tensorflowPipeline('zero-shot-image-classification', 'Xenova/clip-vit-base-patch32');
     }
 
@@ -11,40 +11,35 @@ class NsfwDetector {
         try {
             blobUrl = await this._loadAndResizeImage(imageUrl);
             const classifier = await this._classifierPromise;
-            const output = await classifier(blobUrl, this._nsfwLabels);
+            const nsfwOutput = await classifier(blobUrl, this._nsfwLabels);
 
-            const topClass = output[0];
+            const topClass = nsfwOutput[0];
             const isNsfw = topClass.label === 'NSFW';
 
             if (isNsfw) {
                 console.log(`Classification for ${imageUrl}:`, 'NSFW');
-                console.log('Detailed classification results:', output);
+                console.log('Detailed classification results:', nsfwOutput);
                 return true; // Block immediately if NSFW
             } else {
-                // If the image is classified as SFW, check if it features an adult or child
-                const ageOutput = await classifier(blobUrl, this._ageLabels);
-                const topAgeClass = ageOutput[0];
-                const isChild = topAgeClass.label === 'CHILD';
+                // If the image is classified as SFW, check the subject
+                const subjectOutput = await classifier(blobUrl, this._subjectLabels);
+                const topSubjectClass = subjectOutput[0];
 
-                if (isChild) {
-                    console.log(`Classification for ${imageUrl}:`, 'Safe (Child)');
-                    console.log('Detailed classification results:', ageOutput);
-                    return true; // Consider further action or blocking
-                } else {
-                    // Check dress style if adult
+                console.log(`Subject classification for ${imageUrl}:`, topSubjectClass.label);
+                console.log('Detailed subject classification results:', subjectOutput);
+
+                // Block if the subject is a child
+                if (topSubjectClass.label === 'CHILD') {
+                    return true; // Block images with children
+                } else if (topSubjectClass.label === 'ADULT') {
+                    // Check dress style if subject is an adult
                     const dressOutput = await classifier(blobUrl, this._dressLabels);
                     const topDressClass = dressOutput[0];
-                    const isVulgar = topDressClass.label === 'VULGAR';
+                    console.log('Detailed dress classification results:', dressOutput);
 
-                    if (isVulgar) {
-                        console.log(`Classification for ${imageUrl}:`, 'Blocked (Vulgar Dress)');
-                        console.log('Detailed classification results:', dressOutput);
-                        return true; // Block due to vulgar dress
-                    } else {
-                        console.log(`Classification for ${imageUrl}:`, 'Safe (Decent Dress)');
-                        console.log('Detailed classification results:', dressOutput);
-                        return false; // Image is safe
-                    }
+                    return topDressClass.label === 'VULGAR_DRESS'; // Block if vulgar dress, otherwise show
+                } else {
+                    return false; // Show all other safe categories
                 }
             }
         } catch (error) {
@@ -88,4 +83,5 @@ class NsfwDetector {
 }
 
 window.NsfwDetector = NsfwDetector;
+
 
