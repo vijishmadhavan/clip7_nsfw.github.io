@@ -1,6 +1,6 @@
 class NsfwDetector {
     constructor() {
-        this._nsfwLabels = ['NSFW', 'SFW', 'KIDS', 'CHILDREN', 'TEENAGER', 'BABY', 'TODDLER', 'PRESCHOOLER', 'SCHOOL_AGE_CHILD', 'PRETEEN', 'ADOLESCENT', 'MALE_CHILD', 'FEMALE_CHILD', 'BOY', 'GIRL', 'TEEN', 'MINOR', 'UNDERAGE', 'JUVENILE', 'YOUTH', 'YOUNGSTER', 'CHILD_FACE', 'CHILD_BODY'];
+        this._nsfwLabels = ['NSFW', 'SFW'];
         this._classifierPromise = window.tensorflowPipeline('zero-shot-image-classification', 'Xenova/clip-vit-base-patch32');
     }
 
@@ -13,9 +13,8 @@ class NsfwDetector {
 
             const topClass = output[0];
             const isNsfw = topClass.label === 'NSFW';
-            const isChildRelated = this._nsfwLabels.slice(2).includes(topClass.label);
 
-            if (isNsfw || isChildRelated) {
+            if (isNsfw) {
                 console.log(`Classification for ${imageUrl}:`, 'NSFW');
                 console.log('Detailed classification results:', output);
                 return true;
@@ -88,6 +87,3 @@ class NsfwDetector {
         return results;
     }
 }
-
-window.NsfwDetector = NsfwDetector;
-
