@@ -8,41 +8,43 @@ class NsfwDetector {
 
     async isNsfw(imageUrl) {
         let blobUrl = '';
-
+    
         try {
             blobUrl = await this._loadAndResizeImage(imageUrl);
-
+    
             const classifier = await this._classifierPromise;
-
+    
             const nsfwOutput = await classifier(blobUrl, this._nsfwLabels);
             const topClass = nsfwOutput[0];
             const isNsfw = topClass.label === 'NSFW';
-
+    
             if (isNsfw) {
+                console.log(`Blocked: NSFW content detected.`);
                 return true; // Block immediately if NSFW
             } else {
                 // If the image is classified as SFW, check the subject
                 const subjectOutput = await classifier(blobUrl, this._subjectLabels);
                 const topSubjectClass = subjectOutput[0];
-
+    
                 if (topSubjectClass.label === 'CHILD') {
+                    console.log(`Blocked: Image features a child.`);
                     return true; // Block images with children
                 } else if (topSubjectClass.label === 'ADULT') {
                     // Check dress style if subject is an adult
                     const dressOutput = await classifier(blobUrl, this._dressLabels);
                     const topDressClass = dressOutput[0];
-
+    
                     if (topDressClass.label === 'VULGAR_DRESS' || topDressClass.label === 'TIGHT_DRESS' || topDressClass.label === 'BUTTOCKS_DRESS' || topDressClass.label === 'CLEAVAGE_DRESS') {
+                        console.log(`Blocked: Inappropriate dress detected.`);
                         return true; // Block if any inappropriate dress types are detected
                     }
                 }
-
-                // Display the image if it passes all checks
-                window.displayImage(imageUrl);
-                return false;
+    
+                console.log(`Displayed: Content is appropriate.`);
+                return false; // Display the image
             }
         } catch (error) {
-            console.error(`Error processing image ${imageUrl}:`, error);
+            console.error('Error during NSFW classification: ', error);
             throw error;
         } finally {
             if (blobUrl) {
